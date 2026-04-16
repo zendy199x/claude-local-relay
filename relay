@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'EOF'
+Claude Local Relay CLI
+
+Usage:
+  ./relay bootstrap [claude args...]   One-command setup from scratch, then launch Claude
+  ./relay run [claude args...]         Launch Claude through Claude Local Relay
+  ./relay setup                        Install prerequisites and prepare local environment (macOS/Linux)
+  ./relay gateway                      Start only the relay gateway
+  ./relay set-model <model-id>         Set LOCAL_MODEL in .env
+  ./relay health                       Print gateway health JSON
+  ./relay doctor                       Run local validation checks
+  ./relay help                         Show this help
+
+Examples:
+  ./relay bootstrap
+  ./relay run
+  ./relay run -p "hello"
+  ./relay set-model gemma-3n-e4b-it-local
+EOF
+}
+
+cmd="${1:-run}"
+if [ "$#" -gt 0 ]; then
+  shift
+fi
+
+case "$cmd" in
+  bootstrap)
+    "$SCRIPT_DIR/setup_unix.sh" --install-lmstudio --install-claude
+    exec "$SCRIPT_DIR/run_claude_local_relay.sh" "$@"
+    ;;
+  run)
+    exec "$SCRIPT_DIR/run_claude_local_relay.sh" "$@"
+    ;;
+  setup)
+    exec "$SCRIPT_DIR/setup_unix.sh" "$@"
+    ;;
+  gateway)
+    exec "$SCRIPT_DIR/start_relay_gateway.sh" "$@"
+    ;;
+  set-model)
+    exec "$SCRIPT_DIR/set_relay_model.sh" "$@"
+    ;;
+  health)
+    exec curl -sS "http://127.0.0.1:4000/healthz"
+    ;;
+  doctor)
+    bash -n "$SCRIPT_DIR/relay"
+    bash -n "$SCRIPT_DIR/run_claude_local_relay.sh"
+    bash -n "$SCRIPT_DIR/start_relay_gateway.sh"
+    bash -n "$SCRIPT_DIR/setup_unix.sh"
+    bash -n "$SCRIPT_DIR/set_relay_model.sh"
+    python3 -m py_compile "$SCRIPT_DIR/claude_local_relay_gateway.py"
+    echo "Doctor checks passed."
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $cmd"
+    echo
+    usage
+    exit 1
+    ;;
+esac

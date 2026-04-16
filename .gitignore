@@ -1,0 +1,43 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build and packaging artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# Editor and IDE settings
+.idea/
+.vscode/
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
